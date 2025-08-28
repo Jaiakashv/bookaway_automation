@@ -1,0 +1,15 @@
+{
+  "name": "bookaway-automation",
+  "version": "1.0.0",
+  "description": "A Node.js scraper and data importer for Bookaway.",
+  "main": "scraper_and_importer.js",
+  "type": "module",
+  "dependencies": {
+    "node-fetch": "^3.0.0",
+    "pg": "^8.7.3",
+    "dotenv": "^16.0.0"
+  },
+  "scripts": {
+    "start": "node scraper_and_importer.js"
+  }
+}
