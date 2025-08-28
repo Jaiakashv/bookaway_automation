@@ -2,7 +2,6 @@ import fetch from "node-fetch";
 import fs from 'fs';
 import pg from 'pg';
 import dotenv from 'dotenv';
-import { Console } from "console";
 
 // Load environment variables from .env file (for local testing)
 dotenv.config();
@@ -40,7 +39,7 @@ function convertToINR(amount, fromCurrency, rates) {
     const rate = rates[currency];
     
     if (!rate) {
-      console.warn(`No exchange rate found for ${currency}, using 1:1 conversion`);
+      // console.warn(`No exchange rate found for ${currency}, using 1:1 conversion`);
       return Math.round(amount);
     }
     
@@ -60,7 +59,7 @@ async function getExchangeRates() {
     }
 
     try {
-      console.log('Fetching latest exchange rates...');
+      // console.log('Fetching latest exchange rates...');
       const response = await fetch(EXCHANGE_RATE_API);
       if (!response.ok) {
         throw new Error(`Failed to fetch exchange rates: ${response.statusText}`);
@@ -75,7 +74,7 @@ async function getExchangeRates() {
       exchangeRates = { ...data.rates, INR: 1 };
       return exchangeRates;
     } catch (error) {
-      console.error('Error fetching exchange rates, using fallback rates:', error.message);
+      // console.error('Error fetching exchange rates, using fallback rates:', error.message);
       // Fallback to default rates if API fails
       return {
         PHP: 0.65,      // 1 INR = 0.65 PHP
@@ -115,10 +114,10 @@ try {
             expires: cookie.expirationDate ? new Date(cookie.expirationDate * 1000) : null
         }));
         
-    console.log(`Loaded ${cookies.length} cookies from cookies.json`);
+    // console.log(`Loaded ${cookies.length} cookies from cookies.json`);
     
 } catch (err) {
-    console.error('Error reading or parsing cookies.json:', err);
+    // console.error('Error reading or parsing cookies.json:', err);
     process.exit(1);
 }
 
@@ -127,7 +126,7 @@ const cookieHeader = cookies
     .filter(cookie => {
         const isExpired = cookie.expires && cookie.expires < new Date();
         if (isExpired) {
-            console.log(`Skipping expired cookie: ${cookie.name}`);
+            // console.log(`Skipping expired cookie: ${cookie.name}`);
             return false;
         }
         return true;
@@ -135,7 +134,7 @@ const cookieHeader = cookies
     .map(cookie => `${cookie.name}=${encodeURIComponent(cookie.value)}`)
     .join('; ');
 
-console.log('Cookie header length:', cookieHeader.length);
+// console.log('Cookie header length:', cookieHeader.length);
 
 const headers = {
     "authority": "www.bookaway.com",
@@ -238,8 +237,8 @@ async function fetchRoutes(fromSlug, toSlug, daysAhead = 0) {
     }
 
     try {
-      console.log('Sending request to:', SEARCH_URL);
-      console.log('Request payload:', JSON.stringify(payload, null, 2));
+      // console.log('Sending request to:', SEARCH_URL);
+      // console.log('Request payload:', JSON.stringify(payload, null, 2));
       
       const res = await fetch(SEARCH_URL, {
         method: 'POST',
@@ -247,50 +246,50 @@ async function fetchRoutes(fromSlug, toSlug, daysAhead = 0) {
         body: JSON.stringify(payload)
       });
 
-      console.log('Response status:', res.status);
-      console.log('Response headers:', JSON.stringify([...res.headers.entries()], null, 2));
+      // console.log('Response status:', res.status);
+      // console.log('Response headers:', JSON.stringify([...res.headers.entries()], null, 2));
       
       if (!res.ok) {
         const errorText = await res.text();
-        console.error('Error response body:', errorText);
+        // console.error('Error response body:', errorText);
         throw new Error(`HTTP error! status: ${res.status}, body: ${errorText}`);
       }
 
       const data = await res.json();
       
       // Debug: Log the raw API response structure
-      console.log('API Response Keys:', Object.keys(data));
-      if (data.trips) {
-        console.log(`Found ${data.trips.length} trips`);
-        console.log('First trip keys:', data.trips[0] ? Object.keys(data.trips[0]) : 'No trips');
-        if (data.trips[0]?.legs) {
-          console.log(`First trip has ${data.trips[0].legs.length} legs`);
-          console.log('First leg keys:', data.trips[0].legs[0] ? Object.keys(data.trips[0].legs[0]) : 'No legs');
-        }
-      }
+      // console.log('API Response Keys:', Object.keys(data));
+      // if (data.trips) {
+      //   console.log(`Found ${data.trips.length} trips`);
+      //   console.log('First trip keys:', data.trips[0] ? Object.keys(data.trips[0]) : 'No trips');
+      //   if (data.trips[0]?.legs) {
+      //     console.log(`First trip has ${data.trips[0].legs.length} legs`);
+      //     console.log('First leg keys:', data.trips[0].legs[0] ? Object.keys(data.trips[0].legs[0]) : 'No legs');
+      //   }
+      // }
       
       // Check if we have any trips in the response
       if (!data) {
-        console.error('No data in response');
+        // console.error('No data in response');
         return { success: true, data: [] };
       }
       
       if (!data.trips || !Array.isArray(data.trips)) {
-        console.error('No trips array in response, available keys:', Object.keys(data));
+        // console.error('No trips array in response, available keys:', Object.keys(data));
         return { success: true, data: [] };
       }
       
       if (data.trips.length === 0) {
-        console.log('No trips found in the response');
+        // console.log('No trips found in the response');
         return { success: true, data: [] };
       }
       
-      console.log(`Found ${data.trips.length} trips in the response`);
+      // console.log(`Found ${data.trips.length} trips in the response`);
       
       // Get exchange rates before processing trips
       const rates = await getExchangeRates();
       
-      console.log(`Using exchange rates. 1 INR = ${rates.THB} THB`);
+      // console.log(`Using exchange rates. 1 INR = ${rates.THB} THB`);
       
       // Extract and format the trips
       const formattedRoutes = [];
@@ -298,7 +297,7 @@ async function fetchRoutes(fromSlug, toSlug, daysAhead = 0) {
       data.trips.forEach(trip => {
         // Skip if no legs or empty legs array
         if (!trip.legs || !Array.isArray(trip.legs) || trip.legs.length === 0) {
-          console.log('Skipping trip with no legs');
+          // console.log('Skipping trip with no legs');
           return;
         }
 
@@ -313,7 +312,7 @@ async function fetchRoutes(fromSlug, toSlug, daysAhead = 0) {
             const arrival = journey.arrival || {};
             
             if (!departure?.date || !arrival?.date) {
-              console.log('Skipping journey - missing departure/arrival date');
+              // console.log('Skipping journey - missing departure/arrival date');
               return;
             }
 
@@ -338,7 +337,7 @@ async function fetchRoutes(fromSlug, toSlug, daysAhead = 0) {
             const amount = journeyPriceObj.originalAmount || journeyPriceObj.amount || 0;
             
             // Log currency information for debugging
-            console.log(`Processing price: ${amount} ${currency}`);
+            // console.log(`Processing price: ${amount} ${currency}`);
             
             // Format city names for display
             const formatCityName = (slug) => {
@@ -370,7 +369,7 @@ async function fetchRoutes(fromSlug, toSlug, daysAhead = 0) {
         }); // End of legs loop
       }); // End of trips loop
       
-      console.log(`Formatted ${formattedRoutes.length} routes from trips`);
+      // console.log(`Formatted ${formattedRoutes.length} routes from trips`);
       
       return {
         success: true,
@@ -409,9 +408,9 @@ try {
       toName: route.to_name
     }));
     
-    console.log(`Loaded ${routesList.length} routes from routes_id.json`);
+    // console.log(`Loaded ${routesList.length} routes from routes_id.json`);
 } catch (error) {
-    console.error('Error loading routes_id.json:', error.message);
+    // console.error('Error loading routes_id.json:', error.message);
     process.exit(1);
 }
 
@@ -464,7 +463,7 @@ async function insertRecords(records) {
 
     try {
         await client.connect();
-        console.log("Database connection established.");
+        // console.log("Database connection established.");
 
         const validTrips = records.filter(t => {
             return (
@@ -477,14 +476,14 @@ async function insertRecords(records) {
             );
         });
 
-        console.log(`Found ${records.length} total records from scraper`);
-        console.log(`Importing ${validTrips.length} valid records`);
-        console.log(`Skipping ${records.length - validTrips.length} records with missing/invalid data`);
+        // console.log(`Found ${records.length} total records from scraper`);
+        // console.log(`Importing ${validTrips.length} valid records`);
+        // console.log(`Skipping ${records.length - validTrips.length} records with missing/invalid data`);
 
         // Truncate the table before inserting new data
-        console.log("Truncating 'bookaway_trips' table...");
+        // console.log("Truncating 'bookaway_trips' table...");
         await client.query("TRUNCATE TABLE bookaway_trips RESTART IDENTITY;");
-        console.log("Table successfully truncated. ✅");
+        // console.log("Table successfully truncated. ✅");
 
         const BATCH_SIZE = 400;
         let imported = 0;
@@ -526,36 +525,36 @@ async function insertRecords(records) {
             });
 
             imported += batch.length;
-            console.log(`Progress: ${imported}/${validTrips.length} records imported`);
+            // console.log(`Progress: ${imported}/${validTrips.length} records imported`);
         }
 
-        console.log(`✅ Import completed! Imported ${imported} records`);
+        // console.log(`✅ Import completed! Imported ${imported} records`);
 
     } catch (err) {
-        console.error('Database error:', err);
+        // console.error('Database error:', err);
         throw err;
     } finally {
         await client.end();
-        console.log("Database connection closed.");
+        // console.log("Database connection closed.");
     }
 }
 
 // Main execution function
 (async () => {
     try {
-        console.log("Starting scraper...");
+        // console.log("Starting scraper...");
         const daysAhead = 1; 
         let allResults = [];
 
         for (const r of routesList) {
-            console.log(`\n=== Fetching routes from ${r.fromSlug} to ${r.toSlug} ===`);
+            // console.log(`\n=== Fetching routes from ${r.fromSlug} to ${r.toSlug} ===`);
             const routeResults = await fetchRoutes(r.fromSlug, r.toSlug, daysAhead);
             
             if (routeResults.success) {
-                console.log(`Found ${routeResults.data.length} routes`);
+                // console.log(`Found ${routeResults.data.length} routes`);
                 allResults = allResults.concat(routeResults.data);
             } else {
-                console.error(`Error fetching ${r.fromSlug} to ${r.toSlug}:`, routeResults.error);
+                // console.error(`Error fetching ${r.fromSlug} to ${r.toSlug}:`, routeResults.error);
             }
             
             // Add a small delay between requests to avoid rate limiting
@@ -563,14 +562,13 @@ async function insertRecords(records) {
         }
 
         if (allResults.length > 0) {
-            console.log("Scraping finished. Now importing to database...");
+            // console.log("Scraping finished. Now importing to database...");
             await insertRecords(allResults);
         } else {
-            console.log("No data was scraped. Exiting without importing.");
+            // console.log("No data was scraped. Exiting without importing.");
         }
         
     } catch (error) {
-        console.error('An error occurred during the process:', error);
         process.exit(1);
     }
 })();
