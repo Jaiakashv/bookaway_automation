@@ -1,0 +1,31 @@
+name: Run Daily Scraper
+
+on:
+  schedule:
+    - cron: '30 21 * * *' # This cron job runs every day at 3:00 AM IST
+  workflow_dispatch: # This allows the workflow to be manually triggered from the UI
+
+jobs:
+  scrape-and-import:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18' # Use a stable Node.js version
+
+      - name: Create package.json for ES module support
+        run: echo '{"type": "module"}' > package.json
+      
+      - name: Install dependencies
+        run: |
+          npm install node-fetch pg
+
+      - name: Run the scraper script
+        run: node scraper_and_importer.js
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
